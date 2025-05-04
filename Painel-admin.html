@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - Investfuturo</title>
+</head>
+<body>
+  <h2>Painel do Administrador</h2>
+  <p id="admin-email"></p>
+  <div id="lista-comprovativos"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "seu-projeto.firebaseapp.com",
+      projectId: "seu-projeto",
+      storageBucket: "seu-projeto.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abc123"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const emailAdmin = "admin@investfuturo.com"; // Substitua pelo seu e-mail real
+
+    auth.onAuthStateChanged(user => {
+      if (user && user.email === emailAdmin) {
+        document.getElementById("admin-email").innerText = "Admin: " + user.email;
+        carregarComprovativos();
+      } else {
+        alert("Acesso negado. Apenas o administrador pode ver esta página.");
+        window.location.href = "login.html";
+      }
+    });
+
+    function carregarComprovativos() {
+      db.collection("comprovativos").orderBy("data", "desc").get().then(snapshot => {
+        const div = document.getElementById("lista-comprovativos");
+        div.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const dado = doc.data();
+          const item = document.createElement("div");
+          item.innerHTML = `
+            <hr>
+            <p><strong>Email:</strong> ${dado.email}</p>
+            <p><a href="${dado.url}" target="_blank">Ver Comprovativo</a></p>
+            <button onclick="aprovarComprovativo('${doc.id}')">Aprovar</button>
+          `;
+          div.appendChild(item);
+        });
+      });
+    }
+
+    function aprovarComprovativo(id) {
+      db.collection("comprovativos").doc(id).update({ aprovado: true }).then(() => {
+        alert("Comprovativo aprovado.");
+        carregarComprovativos();
+      });
+    }
+  </script>
+</body>
+</html>
