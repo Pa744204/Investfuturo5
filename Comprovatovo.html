@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enviar Comprovativo - Investfuturo</title>
+</head>
+<body>
+  <h2>Envio de Comprovativo</h2>
+  <p id="usuario-email"></p>
+
+  <input type="file" id="comprovativo" accept="image/*,application/pdf" />
+  <button onclick="enviarComprovativo()">Enviar</button>
+
+  <p id="mensagem"></p>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "seu-projeto.firebaseapp.com",
+      projectId: "seu-projeto",
+      storageBucket: "seu-projeto.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abc123"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const storage = firebase.storage();
+    const db = firebase.firestore();
+
+    let usuarioAtual = null;
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        usuarioAtual = user;
+        document.getElementById("usuario-email").innerText = "Logado como: " + user.email;
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    function enviarComprovativo() {
+      const arquivo = document.getElementById("comprovativo").files[0];
+      if (!arquivo || !usuarioAtual) return alert("Selecione um arquivo e esteja logado.");
+
+      const caminho = `comprovativos/${usuarioAtual.uid}/${Date.now()}-${arquivo.name}`;
+      const ref = storage.ref(caminho);
+
+      ref.put(arquivo).then(snapshot => {
+        return snapshot.ref.getDownloadURL();
+      }).then(url => {
+        return db.collection("comprovativos").add({
+          email: usuarioAtual.email,
+          uid: usuarioAtual.uid,
+          url: url,
+          data: new Date()
+        });
+      }).then(() => {
+        document.getElementById("mensagem").innerText = "Comprovativo enviado com sucesso!";
+      }).catch(error => {
+        document.getElementById("mensagem").innerText = "Erro ao enviar: " + error.message;
+      });
+    }
+  </script>
+</body>
+</html>
