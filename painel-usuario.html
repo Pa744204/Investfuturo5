@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Usuário - Investfuturo</title>
+</head>
+<body>
+  <h2>Bem-vindo ao Painel do Investidor</h2>
+  <p id="usuario-email"></p>
+
+  <button onclick="logout()">Sair</button>
+
+  <h3>Enviar comprovativo:</h3>
+  <a href="comprovativo.html">Clique aqui para enviar</a>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "seu-projeto.firebaseapp.com",
+      projectId: "seu-projeto",
+      storageBucket: "seu-projeto.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abc123"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("usuario-email").innerText = "Logado como: " + user.email;
+      } else {
+        window.location.href = "login.html"; // redireciona se não estiver logado
+      }
+    });
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+  </script>
+</body>
+</html>
